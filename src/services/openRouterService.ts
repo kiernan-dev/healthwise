@@ -199,6 +199,13 @@ Always prioritize user safety while providing helpful natural health guidance.`;
     return !!this.config.apiKey && !!this.client;
   }
 
+  getModelName(): string {
+    const modelId = this.config.defaultModel;
+    // Extracts the user-friendly name from "vendor/model-name"
+    const modelParts = modelId.split('/');
+    return modelParts.length > 1 ? modelParts[1] : modelParts[0];
+  }
+
   updateApiKey(apiKey: string) {
     this.config.apiKey = apiKey;
     if (apiKey) {

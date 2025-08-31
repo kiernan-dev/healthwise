@@ -17,14 +17,23 @@ const ConnectionStatus = ({ className = "" }: ConnectionStatusProps) => {
   const [isConnected, setIsConnected] = useState(false);
   const [isChecking, setIsChecking] = useState(true);
   const [isAIOnlyMode, setIsAIOnlyMode] = useState(false);
+  const [modelName, setModelName] = useState<string | null>(null);
 
   useEffect(() => {
     const checkConnection = () => {
       setIsChecking(true);
       const connected = openRouterService.isConfigured();
       const aiOnly = import.meta.env.VITE_AI_ONLY_MODE === 'true';
+      
       setIsConnected(connected);
       setIsAIOnlyMode(aiOnly);
+      
+      if (connected) {
+        setModelName(openRouterService.getModelName());
+      } else {
+        setModelName(null);
+      }
+
       setIsChecking(false);
     };
 
@@ -65,7 +74,7 @@ const ConnectionStatus = ({ className = "" }: ConnectionStatusProps) => {
             <div>
               <Badge variant="default" className={`bg-green-500 hover:bg-green-600 gap-1.5 ${className}`}>
                 <Zap className="w-3 h-3" />
-                <span className="text-xs font-medium">AI Connected</span>
+                <span className="text-xs font-medium">AI Connected: {modelName}</span>
               </Badge>
             </div>
           </TooltipTrigger>
@@ -73,7 +82,7 @@ const ConnectionStatus = ({ className = "" }: ConnectionStatusProps) => {
             <div className="text-sm">
               <p className="font-medium">🤖 Live AI Responses</p>
               <p className="text-xs text-gray-300 mt-1">
-                Using OpenRouter GPT-4o-mini<br />
+                Using {modelName ? `OpenRouter ${modelName}` : 'an AI model'}<br />
                 Real-time streaming enabled
               </p>
             </div>
