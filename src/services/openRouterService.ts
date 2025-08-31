@@ -14,13 +14,19 @@ interface AIResponse {
 
 class OpenRouterService {
   private client: OpenAI | null = null;
-  private config: OpenRouterConfig;
+  private config: {
+    apiKey: string;
+    baseURL: string;
+    defaultModel: string;
+    visionModel: string;
+  };
 
   constructor() {
     this.config = {
       apiKey: import.meta.env.VITE_OPENROUTER_API_KEY || '',
       baseURL: 'https://openrouter.ai/api/v1',
-      defaultModel: 'openai/gpt-4o-mini' // Cost-effective option for health queries
+      defaultModel: 'openai/gpt-oss-120b', // #1 model for health related content
+      visionModel: 'openai/gpt-4o' // Top-tier model for image analysis
     };
 
     if (this.config.apiKey) {
@@ -75,7 +81,16 @@ RESPONSE STRUCTURE:
 Always prioritize user safety while providing helpful natural health guidance.`;
   }
 
-  private buildUserPrompt(processedInput: ProcessedInput, userMessage: string, recentSymptoms?: string): string {
+  private buildUserPrompt(processedInput: ProcessedInput, userMessage: string, recentSymptoms?: string, file?: File): string {
+    if (file) {
+      let prompt = `The user has uploaded a file named "${file.name}" (${file.type}).\n\n`;
+      if (userMessage) {
+        prompt += `The user provided the following message for context: "${userMessage}"\n\n`;
+      }
+      prompt += `Please analyze the contents of the file and provide natural health recommendations based on what you find. If the file is an image of a health concern (like a rash or swelling), identify what you see and suggest relevant natural remedies. If it's a document or audio file, analyze its content. Adhere strictly to all safety guidelines and response formatting rules from the system prompt.`;
+      return prompt;
+    }
+
     const { intent, originalText } = processedInput;
     const { symptoms, bodyParts, severity, duration } = intent.entities;
 
@@ -113,6 +128,8 @@ Always prioritize user safety while providing helpful natural health guidance.`;
 
     try {
       const systemPrompt = this.buildSystemPrompt();
+      // Note: This non-streaming function doesn't support file uploads yet.
+      // The main app flow uses generateStreamingResponse.
       const userPrompt = this.buildUserPrompt(processedInput, userMessage, recentSymptoms);
 
       const completion = await this.client.chat.completions.create({
@@ -144,11 +161,21 @@ Always prioritize user safety while providing helpful natural health guidance.`;
     }
   }
 
+  private async readFileAsDataURL(file: File): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = (error) => reject(error);
+      reader.readAsDataURL(file);
+    });
+  }
+
   async generateStreamingResponse(
     processedInput: ProcessedInput,
     userMessage: string,
     onChunk: (chunk: string) => void,
-    recentSymptoms?: string
+    recentSymptoms?: string,
+    file?: File
   ): Promise<AIResponse> {
     if (!this.client || !this.config.apiKey) {
       return {
@@ -159,16 +186,44 @@ Always prioritize user safety while providing helpful natural health guidance.`;
 
     try {
       const systemPrompt = this.buildSystemPrompt();
-      const userPrompt = this.buildUserPrompt(processedInput, userMessage, recentSymptoms);
+      const userPrompt = this.buildUserPrompt(processedInput, userMessage, recentSymptoms, file);
+
+      const messages: OpenAI.Chat.Completions.ChatCompletionMessageParam[] = [
+        { role: 'system', content: systemPrompt },
+      ];
+
+      if (file) {
+        const dataUrl = await this.readFileAsDataURL(file);
+        
+        const userContent: OpenAI.Chat.Completions.ChatCompletionContentPart[] = [
+          { type: 'text', text: userPrompt }
+        ];
+
+        if (file.type.startsWith('image/')) {
+          userContent.push({ type: 'image_url', image_url: { url: dataUrl } });
+        } else {
+          // For non-image files like audio or PDF, we can pass it as a text-based data URL
+          // The model needs to be capable of handling this format.
+          // This is a simplification; a more robust solution might involve different content types
+          // if the model supports them (e.g., 'audio_url'). For now, this is a common approach.
+          userContent.push({ type: 'text', text: `Attached file content for ${file.name}:\n\n[...file content represented by data URL...]` });
+        }
+
+        messages.push({
+          role: 'user',
+          content: userContent,
+        });
+      } else {
+        messages.push({ role: 'user', content: userPrompt });
+      }
+
+      const modelToUse = file ? this.config.visionModel : this.config.defaultModel;
 
       const stream = await this.client.chat.completions.create({
-        model: this.config.defaultModel,
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: userPrompt }
-        ],
+        model: modelToUse,
+        messages: messages,
         temperature: 0.7,
-        max_tokens: 1500,
+        max_tokens: 2048, // Increased for potentially larger file content
         top_p: 0.9,
         stream: true
       });

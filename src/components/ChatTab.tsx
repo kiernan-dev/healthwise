@@ -22,7 +22,7 @@ interface Message {
 interface ChatTabProps {
   messages: Message[];
   isLoading: boolean;
-  onSendMessage: (message: string) => void;
+  onSendMessage: (message: string, file?: File) => void;
   streamingMessage?: string;
   isStreaming?: boolean;
   showAIRequired?: boolean;

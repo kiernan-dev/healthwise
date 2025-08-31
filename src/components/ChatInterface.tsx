@@ -107,19 +107,15 @@ const ChatInterface = () => {
     setSessions(chatStorageService.getAllSessions());
   };
 
-  const handleSendMessage = async (content: string) => {
-    if (!content.trim()) return;
-
-    const isHistoryRequest = content.toLowerCase().includes('history') || 
-                           content.toLowerCase().includes('tracked') ||
-                           content.toLowerCase().includes('logged') ||
-                           content.toLowerCase().includes('pattern');
+  const handleSendMessage = async (content: string, file?: File) => {
+    if (!content.trim() && !file) return;
 
     const userMessage: Message = {
       id: Date.now().toString(),
-      content,
+      content: content,
       role: 'user',
-      timestamp: new Date()
+      timestamp: new Date(),
+      // We can add file metadata here if needed
     };
 
     setMessages(prev => [...prev, userMessage]);
@@ -127,7 +123,12 @@ const ChatInterface = () => {
     setIsLoading(true);
 
     try {
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      const isHistoryRequest = !file && (content.toLowerCase().includes('history') || 
+                             content.toLowerCase().includes('tracked') ||
+                             content.toLowerCase().includes('logged') ||
+                             content.toLowerCase().includes('pattern'));
+      
+      await new Promise(resolve => setTimeout(resolve, 500)); // Shorter delay
 
       let response;
       let assistantMessage: Message;
@@ -141,7 +142,7 @@ const ChatInterface = () => {
           timestamp: new Date()
         };
       } else {
-        const processedInput = nlpService.processInput(content);
+        const processedInput = nlpService.processInput(content || "Image analysis request");
         const emergencySymptoms = processedInput.intent.entities.symptoms;
         const severity = processedInput.intent.entities.severity === 'severe' ? 9 : 
                         processedInput.intent.entities.severity === 'moderate' ? 5 : 3;
@@ -153,26 +154,22 @@ const ChatInterface = () => {
             ).join(', ')
           : undefined;
         
-        // Use streaming if OpenRouter is configured
-        if (true) { // We can add a setting for this later
-          setIsStreaming(true);
-          setStreamingMessage('');
-          
-          const streamingResponse = await responseService.generateStreamingResponse(
-            processedInput,
-            (chunk: string) => {
-              setStreamingMessage(prev => prev + chunk);
-            },
-            recentSymptomsText
-          );
-          
-          setIsStreaming(false);
-          response = streamingResponse;
-        } else {
-          response = await responseService.generateResponse(processedInput, recentSymptomsText);
-        }
+        setIsStreaming(true);
+        setStreamingMessage('');
         
-        if (recentSymptoms.length > 0 && processedInput.intent.type === 'symptom') {
+        const streamingResponse = await responseService.generateStreamingResponse(
+          processedInput,
+          (chunk: string) => {
+            setStreamingMessage(prev => prev + chunk);
+          },
+          recentSymptomsText,
+          file
+        );
+        
+        setIsStreaming(false);
+        response = streamingResponse;
+        
+        if (!file && recentSymptoms.length > 0 && processedInput.intent.type === 'symptom') {
           const relatedHistory = recentSymptoms.filter(entry => 
             processedInput.intent.entities.symptoms.some(symptom => 
               entry.symptom.toLowerCase().includes(symptom.toLowerCase())
@@ -202,12 +199,9 @@ const ChatInterface = () => {
       setMessages(prev => [...prev, assistantMessage]);
       saveMessageToHistory(assistantMessage);
       
-      // Clear streaming state
       setStreamingMessage('');
       setIsStreaming(false);
 
-      // Only show separate follow-up questions for mock responses
-      // AI responses include follow-ups in the main content
       if (response && response.followUpQuestions && response.followUpQuestions.length > 0) {
         setTimeout(() => {
           const followUpMessage: Message = {
@@ -222,7 +216,7 @@ const ChatInterface = () => {
       }
 
       if (!isHistoryRequest) {
-        showSuccess("I've analyzed your symptoms and found relevant recommendations!");
+        showSuccess("I've analyzed your message and found relevant recommendations!");
       }
 
     } catch (error) {

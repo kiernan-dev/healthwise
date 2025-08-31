@@ -31,11 +31,12 @@ class ResponseService {
   async generateStreamingResponse(
     processedInput: ProcessedInput, 
     onChunk: (chunk: string) => void,
-    recentSymptoms?: string
+    recentSymptoms?: string,
+    file?: File
   ): Promise<ChatResponse> {
     // Check if OpenRouter is configured, if so use streaming AI response
     if (openRouterService.isConfigured()) {
-      return await this.generateStreamingAIResponse(processedInput, onChunk, recentSymptoms);
+      return await this.generateStreamingAIResponse(processedInput, onChunk, recentSymptoms, file);
     }
 
     // If AI-only mode is enabled and no API key, return error response with streaming effect
@@ -73,14 +74,16 @@ class ResponseService {
   private async generateStreamingAIResponse(
     processedInput: ProcessedInput, 
     onChunk: (chunk: string) => void,
-    recentSymptoms?: string
+    recentSymptoms?: string,
+    file?: File
   ): Promise<ChatResponse> {
     try {
       const aiResponse = await openRouterService.generateStreamingResponse(
         processedInput,
         processedInput.originalText,
         onChunk,
-        recentSymptoms
+        recentSymptoms,
+        file
       );
 
       // AI handles everything in the streaming response
