@@ -63,11 +63,18 @@ const LeftSidebar = ({
   };
 
   const NavButton = ({ view, activeView, onNavigate, children, tooltipText }: any) => {
+    const isActive = activeView === view;
     const button = (
       <Button
-        variant={activeView === view ? 'secondary' : 'ghost'}
+        variant="ghost"
         onClick={() => onNavigate(view)}
-        className={cn("w-full flex items-center", isCollapsed ? "justify-center" : "justify-start")}
+        className={cn(
+          "w-full flex items-center", 
+          isCollapsed ? "justify-center" : "justify-start",
+          isActive
+            ? "bg-green-100 dark:bg-green-900/40 text-green-800 dark:text-green-300 font-semibold hover:bg-green-100 dark:hover:bg-green-900/40"
+            : "hover:bg-gray-200 dark:hover:bg-gray-800"
+        )}
       >
         {children}
       </Button>
@@ -150,9 +157,14 @@ const LeftSidebar = ({
                 {sessions.map(session => (
                   <div key={session.id} className="group relative">
                     <Button
-                      variant={currentSessionId === session.id && activeView === 'chat' ? 'secondary' : 'ghost'}
+                      variant="ghost"
                       onClick={() => onSessionSelect(session.id)}
-                      className="w-full flex items-center justify-start text-left truncate pr-8"
+                      className={cn(
+                        "w-full flex items-center justify-start text-left truncate pr-8",
+                        currentSessionId === session.id && activeView === 'chat'
+                          ? "bg-green-100 dark:bg-green-900/40 text-green-800 dark:text-green-300 font-semibold hover:bg-green-100 dark:hover:bg-green-900/40"
+                          : "hover:bg-gray-200 dark:hover:bg-gray-800"
+                      )}
                     >
                       <MessageSquare className="w-4 h-4 flex-shrink-0" />
                       {editingSessionId === session.id ? (
