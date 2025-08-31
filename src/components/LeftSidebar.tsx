@@ -62,7 +62,15 @@ const LeftSidebar = ({
     setEditingSessionId(null);
   };
 
-  const NavButton = ({ view, activeView, onNavigate, children, tooltipText }: any) => {
+  interface NavButtonProps {
+    view: string;
+    activeView?: 'chat' | 'tracker' | 'insights';
+    onNavigate: (view: any) => void;
+    children: React.ReactNode;
+    tooltipText: string;
+  }
+
+  const NavButton = ({ view, activeView, onNavigate, children, tooltipText }: NavButtonProps) => {
     const isActive = activeView === view;
     const button = (
       <Button
