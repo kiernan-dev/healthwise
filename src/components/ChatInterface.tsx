@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import ChatTab from "./ChatTab";
 import TrackerTab from "./TrackerTab";
 import InsightsTab from "./InsightsTab";
+import { DataManagement } from "./DataManagement";
 import LeftSidebar from "./LeftSidebar";
 import { nlpService } from "@/services/nlpService";
 import { responseService } from "@/services/responseService";
@@ -37,7 +38,7 @@ const ChatInterface = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [streamingMessage, setStreamingMessage] = useState<string>('');
   const [isStreaming, setIsStreaming] = useState(false);
-  const [activeView, setActiveView] = useState<'chat' | 'tracker' | 'insights'>('chat');
+  const [activeView, setActiveView] = useState<'chat' | 'tracker' | 'insights' | 'settings'>('chat');
   const [sessions, setSessions] = useState<ChatSession[]>([]);
   const [currentSession, setCurrentSession] = useState<ChatSession | null>(null);
   const [isCollapsed, setIsCollapsed] = useState(false);
@@ -304,6 +305,14 @@ const ChatInterface = () => {
         return <TrackerTab onSymptomLogged={handleSymptomLogged} />;
       case 'insights':
         return <InsightsTab />;
+      case 'settings':
+        return (
+          <div className="flex flex-col h-full">
+            <div className="flex-1 overflow-y-auto px-6 py-4">
+              <DataManagement />
+            </div>
+          </div>
+        );
       case 'chat':
       default:
         return (

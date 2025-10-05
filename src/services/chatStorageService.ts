@@ -3,7 +3,7 @@ export interface StoredMessage {
   content: string;
   role: 'user' | 'assistant';
   timestamp: Date;
-  recommendations?: any[];
+  recommendations?: unknown[];
   emergencySymptoms?: string[];
   severity?: number;
 }
@@ -30,11 +30,11 @@ class ChatStorageService {
       const stored = localStorage.getItem(this.storageKey);
       if (stored) {
         const parsed = JSON.parse(stored);
-        this.sessions = parsed.map((session: any) => ({
+        this.sessions = parsed.map((session: ChatSession) => ({
           ...session,
           lastUpdated: new Date(session.lastUpdated),
           createdAt: new Date(session.createdAt),
-          messages: session.messages.map((msg: any) => ({
+          messages: session.messages.map((msg: StoredMessage) => ({
             ...msg,
             timestamp: new Date(msg.timestamp)
           }))
@@ -156,6 +156,19 @@ class ChatStorageService {
       session.lastUpdated = new Date();
       this.saveSessions();
     }
+  }
+
+  importSessions(sessions: ChatSession[]): void {
+    this.sessions = sessions.map(session => ({
+      ...session,
+      lastUpdated: new Date(session.lastUpdated),
+      createdAt: new Date(session.createdAt),
+      messages: session.messages.map(msg => ({
+        ...msg,
+        timestamp: new Date(msg.timestamp)
+      }))
+    }));
+    this.saveSessions();
   }
 }
 

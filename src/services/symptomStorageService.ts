@@ -29,7 +29,7 @@ class SymptomStorageService {
       const stored = localStorage.getItem(this.storageKey);
       if (stored) {
         const parsed = JSON.parse(stored);
-        this.symptoms = parsed.map((s: any) => ({
+        this.symptoms = parsed.map((s: SymptomEntry) => ({
           ...s,
           timestamp: new Date(s.timestamp)
         }));
@@ -191,6 +191,14 @@ class SymptomStorageService {
 
   clearAllSymptoms(): void {
     this.symptoms = [];
+    this.saveSymptoms();
+  }
+
+  importSymptoms(symptoms: SymptomEntry[]): void {
+    this.symptoms = symptoms.map(symptom => ({
+      ...symptom,
+      timestamp: new Date(symptom.timestamp)
+    }));
     this.saveSymptoms();
   }
 }

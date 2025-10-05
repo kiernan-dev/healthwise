@@ -191,7 +191,7 @@ const ChatTab = ({ messages, isLoading, onSendMessage, streamingMessage, isStrea
                         
                         // Check if this top-level item has sub-content
                         const hasSubItems = props.node?.children?.some(
-                          (child: any) => child.tagName === 'ul'
+                          (child: { tagName: string }) => child.tagName === 'ul'
                         );
                         
                         if (hasSubItems) {

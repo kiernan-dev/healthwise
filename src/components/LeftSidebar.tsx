@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { ChatSession } from "@/services/chatStorageService";
-import { Plus, MessageSquare, Search, BarChart3, TrendingUp, PanelLeftClose, PanelLeftOpen, Trash2, MoreHorizontal, Pencil } from "lucide-react";
+import { Plus, MessageSquare, Search, BarChart3, TrendingUp, Settings, PanelLeftClose, PanelLeftOpen, Trash2, MoreHorizontal, Pencil } from "lucide-react";
 import { cn } from "@/lib/utils";
 import SearchModal from "./SearchModal";
 import {
@@ -25,10 +25,10 @@ interface LeftSidebarProps {
   currentSessionId: string | null;
   onSessionSelect: (sessionId: string) => void;
   onNewChat: () => void;
-  onNavigate: (view: 'chat' | 'tracker' | 'insights') => void;
+  onNavigate: (view: 'chat' | 'tracker' | 'insights' | 'settings') => void;
   onDeleteSession: (sessionId: string) => void;
   onUpdateSessionTitle: (sessionId: string, newTitle: string) => void;
-  activeView: 'chat' | 'tracker' | 'insights';
+  activeView: 'chat' | 'tracker' | 'insights' | 'settings';
 }
 
 const LeftSidebar = ({
@@ -64,8 +64,8 @@ const LeftSidebar = ({
 
   interface NavButtonProps {
     view: string;
-    activeView?: 'chat' | 'tracker' | 'insights';
-    onNavigate: (view: any) => void;
+    activeView?: 'chat' | 'tracker' | 'insights' | 'settings';
+    onNavigate: (view: 'chat' | 'tracker' | 'insights' | 'settings') => void;
     children: React.ReactNode;
     tooltipText: string;
   }
@@ -226,6 +226,14 @@ const LeftSidebar = ({
             </ScrollArea>
           </>
         )}
+        
+        {/* Settings at bottom */}
+        <div className="p-2 flex-shrink-0 border-t">
+          <NavButton view="settings" activeView={activeView} onNavigate={onNavigate} tooltipText="Settings">
+            <Settings className="w-4 h-4" />
+            {!isCollapsed && <span className="ml-2">Settings</span>}
+          </NavButton>
+        </div>
       </div>
       <SearchModal
         isOpen={isSearchModalOpen}

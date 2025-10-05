@@ -88,7 +88,7 @@ const HealthInsights = () => {
     return Math.round((severityScore + frequencyScore) / 2);
   };
 
-  const generateHealthInsights = (patterns: any, recent: SymptomEntry[], all: SymptomEntry[]): string[] => {
+  const generateHealthInsights = (patterns: { commonSymptoms: string[]; averageSeverity: number; frequentTriggers: string[]; timePatterns: string[] }, recent: SymptomEntry[], all: SymptomEntry[]): string[] => {
     const insights: string[] = [];
     
     if (recent.length === 0) {

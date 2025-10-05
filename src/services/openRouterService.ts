@@ -151,12 +151,12 @@ Always prioritize user safety while providing helpful natural health guidance.`;
 
       return { content: content.trim() };
 
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('OpenRouter API error:', error);
       
       return {
         content: "I apologize, but I'm having trouble connecting to my knowledge base right now. Please try again in a moment, or check with a healthcare professional for urgent concerns.",
-        error: error.message || 'API request failed'
+        error: error instanceof Error ? error.message : 'API request failed'
       };
     }
   }
@@ -240,12 +240,12 @@ Always prioritize user safety while providing helpful natural health guidance.`;
 
       return { content: fullContent };
 
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('OpenRouter streaming error:', error);
       
       return {
         content: "I apologize, but I'm having trouble connecting to my knowledge base right now. Please try again in a moment, or check with a healthcare professional for urgent concerns.",
-        error: error.message || 'Streaming request failed'
+        error: error instanceof Error ? error.message : 'Streaming request failed'
       };
     }
   }
