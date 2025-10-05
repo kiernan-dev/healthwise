@@ -7,6 +7,13 @@ export interface SymptomEntry {
   triggers?: string[];
   bodyPart?: string;
   duration?: string;
+  // Natural health tracking fields
+  supplements?: string[];
+  naturalRemedies?: string[];
+  environmentalFactors?: string[];
+  mindfulnessPractices?: string[];
+  airQuality?: 'good' | 'moderate' | 'poor';
+  weather?: string;
 }
 
 export interface SymptomPattern {

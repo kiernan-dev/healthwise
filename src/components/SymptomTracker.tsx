@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, Plus, X, TrendingUp, BarChart3, Trash2 } from "lucide-react";
+import { Calendar, Plus, X, TrendingUp, BarChart3, Trash2, Leaf, Wind, Brain } from "lucide-react";
 import { symptomStorageService, SymptomEntry } from "@/services/symptomStorageService";
 
 interface SymptomTrackerProps {
@@ -21,9 +21,33 @@ const SymptomTracker = ({ onSymptomLogged }: SymptomTrackerProps) => {
   const [newTrigger, setNewTrigger] = useState("");
   const [recentEntries, setRecentEntries] = useState<SymptomEntry[]>([]);
   const [showPatterns, setShowPatterns] = useState(false);
+  
+  // Natural health tracking states
+  const [supplements, setSupplements] = useState<string[]>([]);
+  const [naturalRemedies, setNaturalRemedies] = useState<string[]>([]);
+  const [environmentalFactors, setEnvironmentalFactors] = useState<string[]>([]);
+  const [mindfulnessPractices, setMindfulnessPractices] = useState<string[]>([]);
+  const [airQuality, setAirQuality] = useState<'good' | 'moderate' | 'poor' | ''>('');
+  const [weather, setWeather] = useState('');
 
   const commonTriggers = [
     "Stress", "Weather", "Food", "Exercise", "Sleep", "Work", "Travel", "Hormones"
+  ];
+
+  const commonSupplements = [
+    "Vitamin D", "Magnesium", "Turmeric", "Omega-3", "Probiotics", "Vitamin B12", "Zinc", "Iron"
+  ];
+
+  const commonRemedies = [
+    "Herbal tea", "Essential oils", "Acupuncture", "Massage", "Hot/cold therapy", "Breathing exercises", "Yoga", "Meditation"
+  ];
+
+  const environmentalOptions = [
+    "High pollen", "Dry air", "Humid weather", "Temperature change", "Indoor air quality", "Seasonal change", "Pollution", "Allergens"
+  ];
+
+  const mindfulnessOptions = [
+    "Meditation", "Deep breathing", "Yoga", "Mindful walking", "Journaling", "Progressive relaxation", "Visualization", "Gratitude practice"
   ];
 
   useEffect(() => {
@@ -42,6 +66,21 @@ const SymptomTracker = ({ onSymptomLogged }: SymptomTrackerProps) => {
     setTriggers(triggers.filter(t => t !== trigger));
   };
 
+  // Helper functions for multi-select fields
+  const toggleSelection = (item: string, currentList: string[], setList: (list: string[]) => void) => {
+    if (currentList.includes(item)) {
+      setList(currentList.filter(i => i !== item));
+    } else {
+      setList([...currentList, item]);
+    }
+  };
+
+  const addCustomItem = (item: string, currentList: string[], setList: (list: string[]) => void) => {
+    if (item.trim() && !currentList.includes(item.trim())) {
+      setList([...currentList, item.trim()]);
+    }
+  };
+
   const handleSubmit = () => {
     if (!symptom.trim()) return;
 
@@ -51,7 +90,13 @@ const SymptomTracker = ({ onSymptomLogged }: SymptomTrackerProps) => {
       severity: severity[0],
       notes: notes.trim(),
       timestamp: new Date(),
-      triggers: triggers.length > 0 ? triggers : undefined
+      triggers: triggers.length > 0 ? triggers : undefined,
+      supplements: supplements.length > 0 ? supplements : undefined,
+      naturalRemedies: naturalRemedies.length > 0 ? naturalRemedies : undefined,
+      environmentalFactors: environmentalFactors.length > 0 ? environmentalFactors : undefined,
+      mindfulnessPractices: mindfulnessPractices.length > 0 ? mindfulnessPractices : undefined,
+      airQuality: airQuality || undefined,
+      weather: weather.trim() || undefined,
     };
 
     // Save to persistent storage
@@ -68,6 +113,12 @@ const SymptomTracker = ({ onSymptomLogged }: SymptomTrackerProps) => {
     setSeverity([5]);
     setNotes("");
     setTriggers([]);
+    setSupplements([]);
+    setNaturalRemedies([]);
+    setEnvironmentalFactors([]);
+    setMindfulnessPractices([]);
+    setAirQuality('');
+    setWeather('');
   };
 
   const getSeverityColor = (level: number) => {
@@ -80,6 +131,20 @@ const SymptomTracker = ({ onSymptomLogged }: SymptomTrackerProps) => {
     if (level <= 3) return "Mild";
     if (level <= 6) return "Moderate";
     return "Severe";
+  };
+
+  const getSeverityEmoji = (level: number) => {
+    if (level <= 2) return "😊";
+    if (level <= 4) return "😐";
+    if (level <= 6) return "😕";
+    if (level <= 8) return "😰";
+    return "😫";
+  };
+
+  const getSeverityBgColor = (level: number) => {
+    if (level <= 3) return "bg-green-100 border-green-300";
+    if (level <= 6) return "bg-yellow-100 border-yellow-300";
+    return "bg-red-100 border-red-300";
   };
 
   const handleClearHistory = () => {

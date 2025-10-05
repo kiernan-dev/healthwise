@@ -1,4 +1,4 @@
-import SymptomTracker from "./SymptomTracker";
+import EnhancedSymptomTracker from "./EnhancedSymptomTracker";
 import { SymptomEntry } from "@/services/symptomStorageService";
 
 interface TrackerTabProps {
@@ -10,7 +10,7 @@ const TrackerTab = ({ onSymptomLogged }: TrackerTabProps) => {
     <div className="flex flex-col h-full">
       <div className="flex-1 overflow-y-auto px-6 py-4">
         <div className="max-w-4xl mx-auto">
-          <SymptomTracker onSymptomLogged={onSymptomLogged} />
+          <EnhancedSymptomTracker onSymptomLogged={onSymptomLogged} />
         </div>
       </div>
     </div>
