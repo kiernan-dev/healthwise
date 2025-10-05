@@ -13,7 +13,3 @@ Your personal natural health assistant - track symptoms, discover natural remedi
 ## Getting Started
 
 This app helps you explore natural approaches to health and wellness while emphasizing the importance of professional medical care when appropriate.
-
----
-
-*Built with Dyad*
