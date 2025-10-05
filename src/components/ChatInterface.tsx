@@ -261,7 +261,8 @@ const ChatInterface = () => {
   };
 
   const handleShowHistory = () => {
-    const historyMessage = "Can you show me my symptom history and any patterns you notice?";
+    const symptomSummary = symptomStorageService.generateSummaryForChat();
+    const historyMessage = `Please analyze my symptom history and identify any patterns, trends, or insights:\n\n${symptomSummary}`;
     setActiveView('chat');
     handleSendMessage(historyMessage);
   };

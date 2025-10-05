@@ -158,10 +158,38 @@ class SymptomStorageService {
 
   generateSummaryForChat(): string {
     const recentSymptoms = this.getRecentSymptoms(7);
+    const allSymptoms = this.getSymptoms();
     const patterns = this.analyzePatterns();
 
+    // If no recent symptoms but there are older symptoms, use all symptoms
+    if (recentSymptoms.length === 0 && allSymptoms.length > 0) {
+      let summary = `**Symptom History (All Time):**\n\n`;
+      summary += `• **Total entries:** ${allSymptoms.length}\n`;
+      
+      if (patterns.commonSymptoms.length > 0) {
+        summary += `• **Most common symptoms:** ${patterns.commonSymptoms.slice(0, 3).join(', ')}\n`;
+      }
+      
+      summary += `• **Average severity:** ${patterns.averageSeverity}/10\n`;
+      
+      if (patterns.frequentTriggers.length > 0) {
+        summary += `• **Common triggers:** ${patterns.frequentTriggers.join(', ')}\n`;
+      }
+      
+      if (patterns.timePatterns.length > 0) {
+        summary += `• **Patterns:** ${patterns.timePatterns.join(', ')}\n`;
+      }
+
+      summary += `\n**Recent entries:**\n`;
+      allSymptoms.slice(0, 5).forEach((entry, index) => {
+        summary += `${index + 1}. ${entry.symptom} (${entry.severity}/10) - ${entry.timestamp.toLocaleDateString()}\n`;
+      });
+
+      return summary;
+    }
+
     if (recentSymptoms.length === 0) {
-      return "No recent symptoms logged in the tracker.";
+      return "No symptoms logged in the tracker.";
     }
 
     let summary = `**Recent Symptom Summary (Last 7 days):**\n\n`;
