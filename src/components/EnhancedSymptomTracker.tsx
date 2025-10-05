@@ -7,7 +7,8 @@ import { Slider } from "@/components/ui/slider";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { TrendingUp, Leaf, Wind, Brain, Plus, X } from "lucide-react";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { TrendingUp, Leaf, Wind, Brain, Plus, X, ChevronDown, ChevronRight, Settings, Zap } from "lucide-react";
 import { symptomStorageService, SymptomEntry } from "@/services/symptomStorageService";
 
 interface EnhancedSymptomTrackerProps {
@@ -15,6 +16,12 @@ interface EnhancedSymptomTrackerProps {
 }
 
 const EnhancedSymptomTracker = ({ onSymptomLogged }: EnhancedSymptomTrackerProps) => {
+  // Progressive disclosure states
+  const [isDetailedMode, setIsDetailedMode] = useState(false);
+  const [showNotes, setShowNotes] = useState(false);
+  const [triggersExpanded, setTriggersExpanded] = useState(false);
+  
+  // Form states
   const [symptom, setSymptom] = useState("");
   const [severity, setSeverity] = useState([5]);
   const [notes, setNotes] = useState("");
@@ -28,12 +35,25 @@ const EnhancedSymptomTracker = ({ onSymptomLogged }: EnhancedSymptomTrackerProps
   const [airQuality, setAirQuality] = useState<'good' | 'moderate' | 'poor' | ''>('');
   const [weather, setWeather] = useState('');
 
-  // Options for multi-select fields
-  const triggerOptions = ["Stress", "Weather", "Food", "Exercise", "Sleep", "Work", "Travel", "Hormones"];
+  // Smart grouped trigger options
+  const triggerGroups = {
+    lifestyle: ["Stress", "Sleep", "Exercise", "Work"],
+    biological: ["Food", "Hormones", "Medication"],
+    environmental: ["Weather", "Travel", "Air Quality"]
+  };
+  
   const supplementOptions = ["Vitamin D", "Magnesium", "Turmeric", "Omega-3", "Probiotics", "Vitamin B12", "Zinc", "Iron"];
   const remedyOptions = ["Herbal tea", "Essential oils", "Acupuncture", "Massage", "Hot/cold therapy", "Breathing exercises", "Yoga", "Meditation"];
   const environmentalOptions = ["High pollen", "Dry air", "Humid weather", "Temperature change", "Indoor air quality", "Seasonal change", "Pollution", "Allergens"];
   const mindfulnessOptions = ["Meditation", "Deep breathing", "Yoga", "Mindful walking", "Journaling", "Progressive relaxation", "Visualization", "Gratitude practice"];
+  
+  const handleSymptomChange = (value: string) => {
+    setSymptom(value);
+  };
+  
+  const handleSeverityChange = (value: number[]) => {
+    setSeverity(value);
+  };
 
   // Helper functions
   const toggleSelection = (item: string, currentList: string[], setList: (list: string[]) => void) => {
@@ -91,7 +111,7 @@ const EnhancedSymptomTracker = ({ onSymptomLogged }: EnhancedSymptomTrackerProps
     symptomStorageService.addSymptom(entry);
     onSymptomLogged?.(entry);
 
-    // Reset form
+    // Reset form and progressive states
     setSymptom("");
     setSeverity([5]);
     setNotes("");
@@ -102,8 +122,39 @@ const EnhancedSymptomTracker = ({ onSymptomLogged }: EnhancedSymptomTrackerProps
     setMindfulnessPractices([]);
     setAirQuality('');
     setWeather('');
+    
+    // Reset progressive disclosure  
+    setShowNotes(false);
+    setTriggersExpanded(false);
   };
 
+  const TriggerChips = ({ groupName, options, selected, onToggle }: { 
+    groupName: string; 
+    options: string[]; 
+    selected: string[]; 
+    onToggle: (item: string) => void; 
+  }) => (
+    <div className="space-y-1">
+      <Label className="text-xs font-medium text-gray-600 capitalize bg-gray-100 px-1.5 py-0.5 rounded text-center">
+        {groupName}
+      </Label>
+      <div className="flex flex-wrap gap-1">
+        {options.map((option) => (
+          <Button
+            key={option}
+            type="button"
+            variant={selected.includes(option) ? "default" : "outline"}
+            size="sm"
+            onClick={() => onToggle(option)}
+            className="text-xs h-6 px-2 py-1"
+          >
+            {option}
+          </Button>
+        ))}
+      </div>
+    </div>
+  );
+  
   const MultiSelectSection = ({ 
     title, 
     icon, 
@@ -157,35 +208,49 @@ const EnhancedSymptomTracker = ({ onSymptomLogged }: EnhancedSymptomTrackerProps
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <TrendingUp className="w-5 h-5 text-blue-600" />
-          Enhanced Symptom Tracker
+        <CardTitle className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <TrendingUp className="w-5 h-5 text-blue-600" />
+            Symptom Tracker
+          </div>
+          <div className="flex items-center gap-2">
+            <Button
+              variant={isDetailedMode ? "default" : "outline"}
+              size="sm"
+              onClick={() => setIsDetailedMode(!isDetailedMode)}
+              className="text-xs"
+            >
+              {isDetailedMode ? <Settings className="w-3 h-3 mr-1" /> : <Zap className="w-3 h-3 mr-1" />}
+              {isDetailedMode ? "Detailed" : "Quick Log"}
+            </Button>
+          </div>
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">
-        {/* Basic Symptom Info */}
+        {/* Primary: Core Question */}
         <div className="space-y-4">
           <div>
-            <Label htmlFor="symptom">What are you experiencing?</Label>
+            <Label htmlFor="symptom" className="text-lg font-medium">What are you experiencing?</Label>
             <Input
               id="symptom"
               value={symptom}
-              onChange={(e) => setSymptom(e.target.value)}
+              onChange={(e) => handleSymptomChange(e.target.value)}
               placeholder="e.g., headache, back pain, nausea..."
-              className="mt-1"
+              className="mt-2 text-base h-12"
+              autoFocus
             />
           </div>
 
-          {/* Enhanced Severity Slider */}
-          <div className={`p-4 rounded-lg border-2 ${getSeverityBgColor(severity[0])}`}>
-            <Label className="flex items-center gap-2 text-lg">
+          {/* Secondary: Severity */}
+          <div className={`p-4 rounded-lg border-2 transition-all duration-300 ${getSeverityBgColor(severity[0])}`}>
+            <Label className="flex items-center gap-2 text-base font-medium">
               <span className="text-2xl">{getSeverityEmoji(severity[0])}</span>
-              Severity: {severity[0]}/10 - {getSeverityLabel(severity[0])}
+              How severe? {severity[0]}/10 - {getSeverityLabel(severity[0])}
             </Label>
             <div className="mt-3">
               <Slider
                 value={severity}
-                onValueChange={setSeverity}
+                onValueChange={handleSeverityChange}
                 max={10}
                 min={1}
                 step={1}
@@ -200,104 +265,153 @@ const EnhancedSymptomTracker = ({ onSymptomLogged }: EnhancedSymptomTrackerProps
           </div>
         </div>
 
-        {/* Natural Health Tracking Sections */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <MultiSelectSection
-            title="Potential Triggers"
-            icon={<TrendingUp className="w-4 h-4" />}
-            options={triggerOptions}
-            selected={triggers}
-            onToggle={(item) => toggleSelection(item, triggers, setTriggers)}
-            color="red"
-          />
+        {/* Tertiary: Smart Triggers */}
+        <div className="space-y-2">
+          <Collapsible open={triggersExpanded} onOpenChange={setTriggersExpanded}>
+            <CollapsibleTrigger asChild>
+              <Button 
+                variant="ghost" 
+                className="w-full justify-between p-0 h-auto text-left"
+              >
+                <Label className="flex items-center gap-2 cursor-pointer text-sm font-medium">
+                  <TrendingUp className="w-4 h-4" />
+                  What might have caused this? {triggers.length > 0 && `(${triggers.length} selected)`}
+                </Label>
+                {triggersExpanded ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+              </Button>
+            </CollapsibleTrigger>
+              <CollapsibleContent className="space-y-1.5 mt-1">
+                <div className="grid grid-cols-3 gap-2">
+                  {Object.entries(triggerGroups).map(([groupName, options]) => (
+                    <TriggerChips
+                      key={groupName}
+                      groupName={groupName}
+                      options={options}
+                      selected={triggers}
+                      onToggle={(item) => toggleSelection(item, triggers, setTriggers)}
+                    />
+                  ))}
+                </div>
+                {triggers.length > 0 && (
+                  <div className="flex flex-wrap gap-1 pt-2 mt-2 border-t border-gray-200">
+                    <span className="text-xs text-gray-500 mr-1">Selected:</span>
+                    {triggers.map((item) => (
+                      <Badge key={item} variant="secondary" className="text-xs h-5">
+                        {item}
+                        <X 
+                          className="w-2.5 h-2.5 ml-1 cursor-pointer" 
+                          onClick={() => toggleSelection(item, triggers, setTriggers)}
+                        />
+                      </Badge>
+                    ))}
+                  </div>
+                )}
+              </CollapsibleContent>
+            </Collapsible>
+        </div>
 
-          <MultiSelectSection
-            title="Supplements Taken"
-            icon={<Leaf className="w-4 h-4" />}
-            options={supplementOptions}
-            selected={supplements}
-            onToggle={(item) => toggleSelection(item, supplements, setSupplements)}
-            color="green"
-          />
+        {/* Detailed Mode: All Advanced Options */}
+        {isDetailedMode && (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 border-t pt-6">
+            <MultiSelectSection
+              title="Supplements Taken"
+              icon={<Leaf className="w-4 h-4" />}
+              options={supplementOptions}
+              selected={supplements}
+              onToggle={(item) => toggleSelection(item, supplements, setSupplements)}
+              color="green"
+            />
 
-          <MultiSelectSection
-            title="Natural Remedies Tried"
-            icon={<Leaf className="w-4 h-4" />}
-            options={remedyOptions}
-            selected={naturalRemedies}
-            onToggle={(item) => toggleSelection(item, naturalRemedies, setNaturalRemedies)}
-            color="emerald"
-          />
+            <MultiSelectSection
+              title="Natural Remedies Tried"
+              icon={<Leaf className="w-4 h-4" />}
+              options={remedyOptions}
+              selected={naturalRemedies}
+              onToggle={(item) => toggleSelection(item, naturalRemedies, setNaturalRemedies)}
+              color="emerald"
+            />
 
-          <MultiSelectSection
-            title="Environmental Factors"
-            icon={<Wind className="w-4 h-4" />}
-            options={environmentalOptions}
-            selected={environmentalFactors}
-            onToggle={(item) => toggleSelection(item, environmentalFactors, setEnvironmentalFactors)}
-            color="sky"
-          />
+            <MultiSelectSection
+              title="Environmental Factors"
+              icon={<Wind className="w-4 h-4" />}
+              options={environmentalOptions}
+              selected={environmentalFactors}
+              onToggle={(item) => toggleSelection(item, environmentalFactors, setEnvironmentalFactors)}
+              color="sky"
+            />
 
-          <MultiSelectSection
-            title="Mindfulness Practices"
-            icon={<Brain className="w-4 h-4" />}
-            options={mindfulnessOptions}
-            selected={mindfulnessPractices}
-            onToggle={(item) => toggleSelection(item, mindfulnessPractices, setMindfulnessPractices)}
-            color="purple"
-          />
+            <MultiSelectSection
+              title="Mindfulness Practices"
+              icon={<Brain className="w-4 h-4" />}
+              options={mindfulnessOptions}
+              selected={mindfulnessPractices}
+              onToggle={(item) => toggleSelection(item, mindfulnessPractices, setMindfulnessPractices)}
+              color="purple"
+            />
 
-          {/* Air Quality & Weather */}
-          <div className="space-y-4">
-            <div>
-              <Label>Air Quality</Label>
-              <Select value={airQuality} onValueChange={(value: 'good' | 'moderate' | 'poor') => setAirQuality(value)}>
-                <SelectTrigger className="mt-1">
-                  <SelectValue placeholder="Select air quality..." />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="good">🟢 Good</SelectItem>
-                  <SelectItem value="moderate">🟡 Moderate</SelectItem>
-                  <SelectItem value="poor">🔴 Poor</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+            {/* Air Quality & Weather */}
+            <div className="space-y-4">
+              <div>
+                <Label>Air Quality</Label>
+                <Select value={airQuality} onValueChange={(value: 'good' | 'moderate' | 'poor') => setAirQuality(value)}>
+                  <SelectTrigger className="mt-1">
+                    <SelectValue placeholder="Select air quality..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="good">🟢 Good</SelectItem>
+                    <SelectItem value="moderate">🟡 Moderate</SelectItem>
+                    <SelectItem value="poor">🔴 Poor</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
 
-            <div>
-              <Label htmlFor="weather">Weather Conditions</Label>
-              <Input
-                id="weather"
-                value={weather}
-                onChange={(e) => setWeather(e.target.value)}
-                placeholder="e.g., rainy, hot, humid..."
-                className="mt-1"
-              />
+              <div>
+                <Label htmlFor="weather">Weather Conditions</Label>
+                <Input
+                  id="weather"
+                  value={weather}
+                  onChange={(e) => setWeather(e.target.value)}
+                  placeholder="e.g., rainy, hot, humid..."
+                  className="mt-1"
+                />
+              </div>
             </div>
           </div>
-        </div>
+        )}
 
-        {/* Notes */}
-        <div>
-          <Label htmlFor="notes">Additional Notes</Label>
-          <Textarea
-            id="notes"
-            value={notes}
-            onChange={(e) => setNotes(e.target.value)}
-            placeholder="Any additional details about your symptoms..."
-            className="mt-1"
-            rows={3}
-          />
-        </div>
+        {/* Quaternary: Expandable Notes */}
+        <Collapsible open={showNotes} onOpenChange={setShowNotes}>
+          <CollapsibleTrigger asChild>
+            <Button 
+              variant="ghost" 
+              className="w-full justify-start p-0 h-auto text-left"
+            >
+              <Label className="flex items-center gap-2 cursor-pointer text-sm text-gray-600">
+                <Plus className="w-3 h-3" />
+                Add notes {notes && `(${notes.length} characters)`}
+              </Label>
+            </Button>
+          </CollapsibleTrigger>
+          <CollapsibleContent className="mt-2">
+            <Textarea
+              id="notes"
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              placeholder="Any additional details about your symptoms..."
+              rows={3}
+            />
+          </CollapsibleContent>
+        </Collapsible>
 
         {/* Submit Button */}
         <Button 
           onClick={handleSubmit}
           disabled={!symptom.trim()}
-          className="w-full"
+          className="w-full mt-6"
           size="lg"
         >
           <Plus className="w-4 h-4 mr-2" />
-          Log Symptom
+          {isDetailedMode ? "Log Detailed Entry" : "Quick Log"}
         </Button>
       </CardContent>
     </Card>
