@@ -3,6 +3,7 @@ import react from "@vitejs/plugin-react-swc";
 import path from "path";
 
 export default defineConfig(() => ({
+  base: '/healthwise/',
   server: {
     host: "::",
     port: parseInt(process.env.PORT || "8080"),
