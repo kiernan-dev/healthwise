@@ -21,31 +21,29 @@ const ConnectionStatus = ({ className = "" }: ConnectionStatusProps) => {
 
   useEffect(() => {
     const checkConnection = async () => {
-      setIsChecking(true);
       const aiOnly = import.meta.env.VITE_AI_ONLY_MODE === 'true';
       setIsAIOnlyMode(aiOnly);
       
-      // Actually validate the API key
-      const connected = await openRouterService.validateApiKey();
+      if (!openRouterService.isConfigured()) {
+        setIsConnected(false);
+        setModelName(null);
+        setIsChecking(false);
+        return;
+      }
       
-      setIsConnected(connected);
-      
-      if (connected) {
-        setModelName(openRouterService.getModelName());
-      } else {
+      try {
+        const validated = await openRouterService.validateApiKey();
+        setIsConnected(validated);
+        setModelName(validated ? openRouterService.getModelName() : null);
+      } catch {
+        setIsConnected(false);
         setModelName(null);
       }
-
+      
       setIsChecking(false);
     };
 
-    // Check immediately
     checkConnection();
-
-    // Check every 30 seconds to detect env changes
-    const interval = setInterval(checkConnection, 30000);
-
-    return () => clearInterval(interval);
   }, []);
 
   if (isChecking) {

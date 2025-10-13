@@ -255,7 +255,7 @@ Always prioritize user safety while providing helpful natural health guidance.`;
   }
 
   isConfigured(): boolean {
-    return !!this.config.apiKey && !!this.client && this.isValidated;
+    return !!this.config.apiKey && !!this.client;
   }
   
   async validateApiKey(): Promise<boolean> {

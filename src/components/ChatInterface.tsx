@@ -45,6 +45,7 @@ const ChatInterface = () => {
     // Collapse sidebar by default on mobile screens
     return window.innerWidth < 768;
   });
+  const [apiValidationStatus, setApiValidationStatus] = useState<'loading' | 'success' | 'failed'>('loading');
   const sidebarRef = useRef<ImperativePanelHandle>(null);
 
   const isAIOnlyMode = () => {
@@ -52,7 +53,7 @@ const ChatInterface = () => {
   };
 
   const isAIRequired = () => {
-    return isAIOnlyMode() && !openRouterService.isConfigured();
+    return isAIOnlyMode() && apiValidationStatus === 'failed';
   };
 
   useEffect(() => {
@@ -78,6 +79,25 @@ const ChatInterface = () => {
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, [isCollapsed]);
+
+  // Perform initial API handshake
+  useEffect(() => {
+    const performHandshake = async () => {
+      if (!openRouterService.isConfigured()) {
+        setApiValidationStatus('failed');
+        return;
+      }
+      
+      try {
+        const isValid = await openRouterService.validateApiKey();
+        setApiValidationStatus(isValid ? 'success' : 'failed');
+      } catch {
+        setApiValidationStatus('failed');
+      }
+    };
+
+    performHandshake();
+  }, []);
 
   // Load sessions and current session on mount
   useEffect(() => {
@@ -332,6 +352,16 @@ const ChatInterface = () => {
         );
       case 'chat':
       default:
+        if (apiValidationStatus === 'loading') {
+          return (
+            <div className="flex-1 flex items-center justify-center">
+              <div className="text-center">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600 mx-auto mb-4"></div>
+                <p className="text-gray-600">Connecting to AI service...</p>
+              </div>
+            </div>
+          );
+        }
         return (
           <ChatTab 
             messages={messages}
@@ -384,9 +414,9 @@ const ChatInterface = () => {
       </ResizablePanel>
       <ResizableHandle withHandle className="hidden md:flex" />
       <ResizablePanel defaultSize={window.innerWidth < 768 ? 96 : 80}>
-        <div className="flex flex-col h-screen">
-          {/* Header */}
-          <div className="bg-white border-b px-4 md:px-6 py-3 md:py-4 shadow-sm flex-shrink-0">
+        <div className="flex flex-col h-full">
+          {/* Header - Hidden on mobile */}
+          <div className="hidden md:block bg-white border-b px-4 md:px-6 py-3 md:py-4 shadow-sm flex-shrink-0">
             <div className="flex items-center justify-between">
               <div>
                 <div className="flex items-center gap-2 md:gap-3">

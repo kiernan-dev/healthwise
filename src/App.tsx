@@ -34,16 +34,11 @@ const App = () => {
           -webkit-tap-highlight-color: transparent;
           touch-action: manipulation;
           overscroll-behavior: none;
-          position: fixed;
-          width: 100%;
-          height: 100%;
-          overflow: hidden;
         }
         
         #root {
           height: 100vh;
           height: 100dvh;
-          overflow: hidden;
         }
         
         /* iOS Safari bottom bar handling */
