@@ -284,7 +284,7 @@ Always prioritize user safety while providing helpful natural health guidance.`;
       
       this.isValidated = true;
       return true;
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('API key validation failed:', error);
       this.isValidated = false;
       return false;
