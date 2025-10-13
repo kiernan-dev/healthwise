@@ -1,8 +1,59 @@
+import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Bot, Shield, Heart, Lightbulb } from "lucide-react";
 
 const WelcomeMessage = () => {
+  const [isMobile, setIsMobile] = useState(false);
+  
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+  
+  if (isMobile) {
+    return (
+      <div className="flex gap-3 mb-4">
+        <Avatar className="w-8 h-8 mt-1">
+          <AvatarFallback className="bg-green-100">
+            <Bot className="w-4 h-4 text-green-600" />
+          </AvatarFallback>
+        </Avatar>
+        
+        <Card className="bg-white border shadow-sm p-4 max-w-[85%]">
+          <div className="space-y-3">
+            <div>
+              <h2 className="text-base font-semibold text-green-700 mb-1">
+                Natural Health Assistant
+              </h2>
+              <p className="text-sm text-gray-700 leading-relaxed">
+                Describe your symptoms for personalized natural remedy suggestions.
+              </p>
+            </div>
+            
+            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+              <p className="text-xs text-yellow-800">
+                <strong>Note:</strong> For educational purposes only. Consult healthcare providers for medical advice.
+              </p>
+            </div>
+            
+            <div>
+              <p className="text-sm text-gray-700 font-medium">How can I help?</p>
+              <p className="text-xs text-gray-600 mt-1">
+                Try: "headache and stress" or "sleep issues"
+              </p>
+            </div>
+          </div>
+        </Card>
+      </div>
+    );
+  }
+  
   return (
     <div className="flex gap-3 mb-6">
       <Avatar className="w-8 h-8 mt-1">
@@ -56,6 +107,7 @@ const WelcomeMessage = () => {
               professional medical advice. Always consult with a healthcare provider for serious or persistent symptoms.
             </p>
           </div>
+          
           
           <div className="pt-2">
             <p className="text-gray-700 font-medium">How can I help you today?</p>

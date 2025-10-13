@@ -3,6 +3,7 @@ import { Card } from "@/components/ui/card";
 import { User, Bot } from "lucide-react";
 import { cn } from "@/lib/utils";
 import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 interface ChatMessageProps {
   message: {
@@ -40,7 +41,40 @@ const ChatMessage = ({ message }: ChatMessageProps) => {
             <div className="whitespace-pre-wrap">{message.content}</div>
           ) : (
             <ReactMarkdown 
+              remarkPlugins={[remarkGfm]}
               components={{
+                table: ({children}) => (
+                  <div className="overflow-x-auto my-4">
+                    <table className="min-w-full border border-gray-200 rounded-lg bg-white">
+                      {children}
+                    </table>
+                  </div>
+                ),
+                thead: ({children}) => (
+                  <thead className="bg-green-50">
+                    {children}
+                  </thead>
+                ),
+                tbody: ({children}) => (
+                  <tbody className="divide-y divide-gray-200">
+                    {children}
+                  </tbody>
+                ),
+                tr: ({children}) => (
+                  <tr className="hover:bg-gray-50">
+                    {children}
+                  </tr>
+                ),
+                th: ({children}) => (
+                  <th className="px-3 py-2 text-left text-xs font-semibold text-green-800 border-b border-green-200 uppercase tracking-wider">
+                    {children}
+                  </th>
+                ),
+                td: ({children}) => (
+                  <td className="px-3 py-2 text-sm text-gray-700 border-b border-gray-200">
+                    {children}
+                  </td>
+                ),
                 h1: ({children}) => (
                   <h1 className="text-xl font-bold text-gray-900 mb-4 pb-2 border-b border-gray-200">
                     {children}

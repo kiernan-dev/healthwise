@@ -41,7 +41,10 @@ const ChatInterface = () => {
   const [activeView, setActiveView] = useState<'chat' | 'tracker' | 'insights' | 'settings'>('chat');
   const [sessions, setSessions] = useState<ChatSession[]>([]);
   const [currentSession, setCurrentSession] = useState<ChatSession | null>(null);
-  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(() => {
+    // Collapse sidebar by default on mobile screens
+    return window.innerWidth < 768;
+  });
   const sidebarRef = useRef<ImperativePanelHandle>(null);
 
   const isAIOnlyMode = () => {
@@ -61,6 +64,19 @@ const ChatInterface = () => {
         sidebar.expand();
       }
     }
+  }, [isCollapsed]);
+
+  // Handle window resize to auto-collapse sidebar on mobile
+  useEffect(() => {
+    const handleResize = () => {
+      const isMobile = window.innerWidth < 768;
+      if (isMobile && !isCollapsed) {
+        setIsCollapsed(true);
+      }
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
   }, [isCollapsed]);
 
   // Load sessions and current session on mount
@@ -332,12 +348,21 @@ const ChatInterface = () => {
   const symptomCount = symptomStorageService.getSymptoms().length;
 
   return (
-    <ResizablePanelGroup direction="horizontal" className="h-screen w-full bg-gray-50">
+    <div className="relative">
+      {/* Mobile overlay when sidebar is expanded */}
+      {!isCollapsed && window.innerWidth < 768 && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden"
+          onClick={() => setIsCollapsed(true)}
+        />
+      )}
+      
+      <ResizablePanelGroup direction="horizontal" className="h-screen md:h-screen w-full bg-gray-50" style={{ height: '100vh', minHeight: '100vh' }}>
       <ResizablePanel
         ref={sidebarRef}
         collapsible
         collapsedSize={4}
-        defaultSize={20}
+        defaultSize={window.innerWidth < 768 ? 4 : 20}
         minSize={15}
         maxSize={50}
         onCollapse={() => setIsCollapsed(true)}
@@ -357,18 +382,20 @@ const ChatInterface = () => {
           activeView={activeView}
         />
       </ResizablePanel>
-      <ResizableHandle withHandle />
-      <ResizablePanel defaultSize={80}>
+      <ResizableHandle withHandle className="hidden md:flex" />
+      <ResizablePanel defaultSize={window.innerWidth < 768 ? 96 : 80}>
         <div className="flex flex-col h-screen">
           {/* Header */}
-          <div className="bg-white border-b px-6 py-4 shadow-sm flex-shrink-0">
+          <div className="bg-white border-b px-4 md:px-6 py-3 md:py-4 shadow-sm flex-shrink-0">
             <div className="flex items-center justify-between">
               <div>
-                <div className="flex items-center gap-3">
-                  <h1 className="text-xl font-semibold text-gray-800">HealthWise</h1>
-                  <ConnectionStatus />
+                <div className="flex items-center gap-2 md:gap-3">
+                  <h1 className="text-lg md:text-xl font-semibold text-gray-800">HealthWise</h1>
+                  <div className="hidden md:block">
+                    <ConnectionStatus />
+                  </div>
                 </div>
-                <p className="text-sm text-gray-600">
+                <p className="text-xs md:text-sm text-gray-600">
                   {currentSession && activeView === 'chat' ? currentSession.title : "Your natural health assistant"}
                   {symptomCount > 0 && (
                     <span className="ml-2 text-blue-600">• {symptomCount} symptoms tracked</span>
@@ -378,9 +405,14 @@ const ChatInterface = () => {
               
               <div className="flex gap-2">
                 {symptomCount > 0 && (
-                  <Button variant="outline" size="sm" onClick={handleShowHistory}>
+                  <Button variant="outline" size="sm" onClick={handleShowHistory} className="hidden sm:flex">
                     <History className="w-4 h-4 mr-1" />
                     Analyze History
+                  </Button>
+                )}
+                {symptomCount > 0 && (
+                  <Button variant="outline" size="sm" onClick={handleShowHistory} className="sm:hidden">
+                    <History className="w-4 h-4" />
                   </Button>
                 )}
               </div>
@@ -393,7 +425,8 @@ const ChatInterface = () => {
           </main>
         </div>
       </ResizablePanel>
-    </ResizablePanelGroup>
+      </ResizablePanelGroup>
+    </div>
   );
 };
 

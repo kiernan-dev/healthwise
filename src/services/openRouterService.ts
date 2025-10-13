@@ -14,6 +14,8 @@ interface AIResponse {
 
 class OpenRouterService {
   private client: OpenAI | null = null;
+  private isValidated: boolean = false;
+  private validationPromise: Promise<boolean> | null = null;
   private config: {
     apiKey: string;
     baseURL: string;
@@ -31,6 +33,8 @@ class OpenRouterService {
 
     if (this.config.apiKey) {
       this.initializeClient();
+      // Validate API key in background
+      this.validateApiKey();
     }
   }
 
@@ -251,7 +255,42 @@ Always prioritize user safety while providing helpful natural health guidance.`;
   }
 
   isConfigured(): boolean {
-    return !!this.config.apiKey && !!this.client;
+    return !!this.config.apiKey && !!this.client && this.isValidated;
+  }
+  
+  async validateApiKey(): Promise<boolean> {
+    if (!this.config.apiKey || !this.client) {
+      this.isValidated = false;
+      return false;
+    }
+    
+    if (this.validationPromise) {
+      return this.validationPromise;
+    }
+    
+    this.validationPromise = this.performValidation();
+    return this.validationPromise;
+  }
+  
+  private async performValidation(): Promise<boolean> {
+    try {
+      // Make a minimal test request to validate the API key
+      const response = await this.client!.chat.completions.create({
+        model: this.config.defaultModel,
+        messages: [{ role: 'user', content: 'test' }],
+        max_tokens: 1,
+        stream: false
+      });
+      
+      this.isValidated = true;
+      return true;
+    } catch (error: any) {
+      console.error('API key validation failed:', error);
+      this.isValidated = false;
+      return false;
+    } finally {
+      this.validationPromise = null;
+    }
   }
 
   getModelName(): string {

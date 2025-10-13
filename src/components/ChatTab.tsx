@@ -7,6 +7,7 @@ import AIRequiredMessage from "./AIRequiredMessage";
 import RemedyCard from "./RemedyCard";
 import EmergencyGuidance from "./EmergencyGuidance";
 import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import { RemedyRecommendation } from "@/services/remedyService";
 
 interface Message {
@@ -40,9 +41,9 @@ const ChatTab = ({ messages, isLoading, onSendMessage, streamingMessage, isStrea
   }, [messages, isLoading, streamingMessage]);
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full" style={{ height: '100vh', minHeight: '100vh' }}>
       {/* Messages Area */}
-      <div className="flex-1 overflow-y-auto px-6 py-4">
+      <div className="flex-1 overflow-y-auto px-4 md:px-6 py-2 md:py-4" style={{ minHeight: 0 }}>
         <div className="max-w-4xl mx-auto">
           {messages.length === 0 && showAIRequired && <AIRequiredMessage />}
           {messages.length === 0 && !showAIRequired && <WelcomeMessage />}
@@ -88,7 +89,40 @@ const ChatTab = ({ messages, isLoading, onSendMessage, streamingMessage, isStrea
               <div className="flex-1 bg-white rounded-lg px-6 py-4 shadow-sm border border-gray-200">
                 <div className="prose prose-sm max-w-none text-gray-800">
                   <ReactMarkdown 
+                    remarkPlugins={[remarkGfm]}
                     components={{
+                      table: ({children}) => (
+                        <div className="overflow-x-auto my-4">
+                          <table className="min-w-full border border-gray-200 rounded-lg">
+                            {children}
+                          </table>
+                        </div>
+                      ),
+                      thead: ({children}) => (
+                        <thead className="bg-green-50">
+                          {children}
+                        </thead>
+                      ),
+                      tbody: ({children}) => (
+                        <tbody className="divide-y divide-gray-200">
+                          {children}
+                        </tbody>
+                      ),
+                      tr: ({children}) => (
+                        <tr className="hover:bg-gray-50">
+                          {children}
+                        </tr>
+                      ),
+                      th: ({children}) => (
+                        <th className="px-4 py-3 text-left text-sm font-semibold text-green-800 border-b border-green-200">
+                          {children}
+                        </th>
+                      ),
+                      td: ({children}) => (
+                        <td className="px-4 py-3 text-sm text-gray-700 border-b border-gray-200">
+                          {children}
+                        </td>
+                      ),
                       h1: ({children}) => (
                         <div className="bg-gradient-to-r from-green-50 to-blue-50 rounded-lg p-4 mb-6 border border-green-200">
                           <h1 className="text-xl font-bold text-gray-900 flex items-center gap-2 m-0">
@@ -239,7 +273,7 @@ const ChatTab = ({ messages, isLoading, onSendMessage, streamingMessage, isStrea
       </div>
 
       {/* Chat Input */}
-      <div className="bg-white border-t flex-shrink-0">
+      <div className="bg-white border-t flex-shrink-0 pb-safe">
         <div className="max-w-4xl mx-auto">
           <ChatInput 
             onSendMessage={onSendMessage}

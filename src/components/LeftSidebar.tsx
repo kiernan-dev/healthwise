@@ -5,6 +5,7 @@ import { ChatSession } from "@/services/chatStorageService";
 import { Plus, MessageSquare, Search, BarChart3, TrendingUp, Settings, PanelLeftClose, PanelLeftOpen, Trash2, MoreHorizontal, Pencil } from "lucide-react";
 import { cn } from "@/lib/utils";
 import SearchModal from "./SearchModal";
+import ConnectionStatus from "./ConnectionStatus";
 import {
   Tooltip,
   TooltipContent,
@@ -101,20 +102,20 @@ const LeftSidebar = ({
 
   return (
     <>
-      <div className="flex flex-col bg-gray-100 dark:bg-gray-900 border-r h-full">
+      <div className="flex flex-col bg-gray-100 dark:bg-gray-900 border-r h-full relative z-50">
         <div className="p-2 flex-shrink-0">
           {isCollapsed ? (
             <Tooltip>
               <TooltipTrigger asChild>
                 <div 
-                  className="group relative mx-auto flex h-10 w-10 cursor-pointer items-center justify-center rounded-full"
+                  className="group relative mx-auto flex h-12 w-12 md:h-10 md:w-10 cursor-pointer items-center justify-center rounded-full touch-manipulation"
                   onClick={() => setIsCollapsed(false)}
                 >
-                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-green-100 group-hover:hidden">
-                    <span className="text-lg font-semibold text-green-600">🌿</span>
+                  <div className="flex h-12 w-12 md:h-10 md:w-10 items-center justify-center rounded-full bg-green-100 group-hover:hidden">
+                    <span className="text-xl md:text-lg font-semibold text-green-600">🌿</span>
                   </div>
-                  <div className="hidden h-10 w-10 items-center justify-center rounded-full bg-gray-200 dark:bg-gray-800 group-hover:flex">
-                    <PanelLeftOpen className="h-5 w-5" />
+                  <div className="hidden h-12 w-12 md:h-10 md:w-10 items-center justify-center rounded-full bg-gray-200 dark:bg-gray-800 group-hover:flex">
+                    <PanelLeftOpen className="h-6 w-6 md:h-5 md:w-5" />
                   </div>
                 </div>
               </TooltipTrigger>
@@ -125,7 +126,7 @@ const LeftSidebar = ({
               <div className="ml-2 flex h-10 w-10 items-center justify-center rounded-full bg-green-100">
                 <span className="text-lg font-semibold text-green-600">🌿</span>
               </div>
-              <Button variant="ghost" size="icon" onClick={() => setIsCollapsed(true)}>
+              <Button variant="ghost" size="icon" onClick={() => setIsCollapsed(true)} className="h-10 w-10">
                 <PanelLeftClose className="h-5 w-5" />
               </Button>
             </div>
@@ -227,13 +228,20 @@ const LeftSidebar = ({
           </>
         )}
         
-        {/* Settings at bottom */}
+        {/* Settings */}
         <div className="p-2 flex-shrink-0 border-t">
           <NavButton view="settings" activeView={activeView} onNavigate={onNavigate} tooltipText="Settings">
-            <Settings className="w-4 h-4" />
+            <Settings className={cn("w-4 h-4", isCollapsed && "w-6 h-6 md:w-4 md:h-4")} />
             {!isCollapsed && <span className="ml-2">Settings</span>}
           </NavButton>
         </div>
+        
+        {/* Connection Status - ABSOLUTE BOTTOM */}
+        {isCollapsed && (
+          <div className="absolute bottom-2 left-0 right-0 flex justify-center md:hidden">
+            <ConnectionStatus className="" />
+          </div>
+        )}
       </div>
       <SearchModal
         isOpen={isSearchModalOpen}

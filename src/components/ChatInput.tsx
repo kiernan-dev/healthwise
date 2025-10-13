@@ -90,7 +90,7 @@ const ChatInput = ({ onSendMessage, isLoading, disabled }: ChatInputProps) => {
 
   return (
     <div 
-      className="p-4 border-t bg-white relative"
+      className="p-3 md:p-4 border-t bg-white relative"
       onDragEnter={handleDragEnter}
       onDragLeave={handleDragLeave}
       onDragOver={handleDragOver}
@@ -124,9 +124,10 @@ const ChatInput = ({ onSendMessage, isLoading, disabled }: ChatInputProps) => {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="Describe your symptoms, health concern, or drop a file..."
-            className="min-h-[60px] max-h-[120px] resize-none pr-12"
+            placeholder={window.innerWidth < 768 ? "Describe symptoms..." : "Describe your symptoms, health concern, or drop a file..."}
+            className="min-h-[60px] max-h-[120px] resize-none pr-12 text-base"
             disabled={disabled || isLoading}
+            style={{ fontSize: '16px' }}
           />
           <input
             type="file"
@@ -139,7 +140,7 @@ const ChatInput = ({ onSendMessage, isLoading, disabled }: ChatInputProps) => {
             type="button"
             size="icon"
             variant="ghost"
-            className="absolute bottom-2 right-2"
+            className="absolute bottom-2 right-2 h-8 w-8 md:h-9 md:w-9"
             onClick={() => fileInputRef.current?.click()}
             disabled={isLoading || disabled}
             aria-label="Attach file"
@@ -152,15 +153,16 @@ const ChatInput = ({ onSendMessage, isLoading, disabled }: ChatInputProps) => {
           size="icon"
           disabled={(!input.trim() && !file) || isLoading || disabled}
           className={cn(
-            "h-[60px] w-[60px] shrink-0",
-            "bg-green-600 hover:bg-green-700"
+            "h-[60px] w-[60px] shrink-0 touch-manipulation",
+            "bg-green-600 hover:bg-green-700",
+            "active:scale-95 transition-transform"
           )}
           aria-label="Send message"
         >
           {isLoading ? (
-            <Loader2 className="w-4 h-4 animate-spin" />
+            <Loader2 className="w-5 h-5 animate-spin" />
           ) : (
-            <Send className="w-4 h-4" />
+            <Send className="w-5 h-5" />
           )}
         </Button>
       </form>

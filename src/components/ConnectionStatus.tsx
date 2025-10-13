@@ -20,13 +20,15 @@ const ConnectionStatus = ({ className = "" }: ConnectionStatusProps) => {
   const [modelName, setModelName] = useState<string | null>(null);
 
   useEffect(() => {
-    const checkConnection = () => {
+    const checkConnection = async () => {
       setIsChecking(true);
-      const connected = openRouterService.isConfigured();
       const aiOnly = import.meta.env.VITE_AI_ONLY_MODE === 'true';
+      setIsAIOnlyMode(aiOnly);
+      
+      // Actually validate the API key
+      const connected = await openRouterService.validateApiKey();
       
       setIsConnected(connected);
-      setIsAIOnlyMode(aiOnly);
       
       if (connected) {
         setModelName(openRouterService.getModelName());
@@ -54,7 +56,7 @@ const ConnectionStatus = ({ className = "" }: ConnectionStatusProps) => {
             <div>
               <Badge variant="secondary" className={`gap-1.5 ${className}`}>
                 <Settings className="w-3 h-3 animate-spin" />
-                <span className="text-xs">Checking...</span>
+                <span className="text-xs hidden md:inline">Checking...</span>
               </Badge>
             </div>
           </TooltipTrigger>
@@ -74,7 +76,7 @@ const ConnectionStatus = ({ className = "" }: ConnectionStatusProps) => {
             <div>
               <Badge variant="default" className={`bg-green-500 hover:bg-green-600 gap-1.5 ${className}`}>
                 <Zap className="w-3 h-3" />
-                <span className="text-xs font-medium">AI Connected: {modelName}</span>
+                <span className="text-xs font-medium hidden md:inline">AI Connected: {modelName}</span>
               </Badge>
             </div>
           </TooltipTrigger>
@@ -101,7 +103,7 @@ const ConnectionStatus = ({ className = "" }: ConnectionStatusProps) => {
             <div>
               <Badge variant="destructive" className={`gap-1.5 ${className}`}>
                 <WifiOff className="w-3 h-3" />
-                <span className="text-xs font-medium">AI Required</span>
+                <span className="text-xs font-medium hidden md:inline">AI Required</span>
               </Badge>
             </div>
           </TooltipTrigger>
@@ -126,7 +128,7 @@ const ConnectionStatus = ({ className = "" }: ConnectionStatusProps) => {
           <div>
             <Badge variant="secondary" className={`bg-orange-100 text-orange-800 hover:bg-orange-200 gap-1.5 ${className}`}>
               <WifiOff className="w-3 h-3" />
-              <span className="text-xs font-medium">Mock Mode</span>
+              <span className="text-xs font-medium hidden md:inline">Mock Mode</span>
             </Badge>
           </div>
         </TooltipTrigger>
