@@ -163,9 +163,6 @@ Without an API key, the app runs in **Mock Mode** with pre-built natural remedy 
 
 ### Deployment
 
-The app is configured for deployment to GitHub Pages:
-
-- **Base path**: `/healthwise` (configured in `vite.config.ts`)
 - **Static deployment**: Fully client-side, no server required
 - **Build output**: `dist/` directory contains deployable files
 
